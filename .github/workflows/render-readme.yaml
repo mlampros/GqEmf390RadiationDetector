@@ -21,8 +21,11 @@ jobs:
       - uses: r-lib/actions/setup-r@v1
       - uses: r-lib/actions/setup-pandoc@v1
       
-      - name: install dependencies
-        run: sudo apt-get install libcurl4-openssl-dev
+      - name: Update packages
+        run: sudo apt update
+      
+      - name: Install Curl
+        run: sudo apt install libcurl4-openssl-dev libssl-dev
       
       # Install packages needed
       - name: install required packages
