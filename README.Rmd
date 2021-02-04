@@ -1,0 +1,199 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+
+## GqEmf390RadiationDetector
+
+<br>
+
+This R-package includes mainly data uploaded from my personal [GQ EMF-390](https://www.gqelectronicsllc.com/comersus/store/comersus_viewItem.asp?idProduct=5678) meter device to measure **EMF** (*Electromagnetic Field Radiation*), **EF** (*Electric Field Radiation*) and **RF** (*Radio Frequency Radiation*). 
+
+You can read how [harmful EMF can be for the human health in this article](https://www.healthline.com/health/emf#TOC_TITLE_HDR_1), for instance mentioned *symptoms* can be:
+
+* sleep disturbances, including insomnia
+* headache
+* depression and depressive symptoms
+* tiredness and fatigue
+* dysesthesia (a painful, often itchy sensation)
+* lack of concentration
+* changes in memory
+* dizziness
+* irritability
+(among others)
+
+<br>
+
+If you want to go one step further you can read about [microwave weapons](https://www.nytimes.com/2018/09/01/science/sonic-attack-cuba-microwave.html) that a few nations employ to negatively affect the **human mind**. Related to the latter is the [Havana Syndrom](https://en.wikipedia.org/wiki/Havana_syndrome) which caused a disturbance worldwide.
+
+<br>
+
+The following visualization shows the measurements of the **3 radiation meters** along time (I've added also my **measurement location which is currently in Zografou, Athens, Greece**). I've **aggregated** the data **by day** and I computed the **mean** and **max** value for each one of the variables:
+
+<br>
+
+```{r, eval = TRUE, echo = FALSE}
+
+#########################################################################################
+#                              !!!!!! IMPORTANT !!!!!!!!! 
+#                              ##########################
+# Currently the Rust package does not return the correct YEAR, therefore I have to pass 
+# the YEAR of the .csv file name to the data.table so that the correct year is displayed
+#########################################################################################
+
+dir_pth = system.file('emf_rf_ef_data', package = 'GqEmf390RadiationDetector')
+lst_csvs = list.files(dir_pth, full.names = T, pattern = '.csv')
+dat = lapply(1:length(lst_csvs), function(x) {
+    
+    #...................................................... Extract the year from the file name
+    tmp_str = strsplit(basename(lst_csvs[x]), '_')[[1]]
+    tmp_str = tmp_str[length(tmp_str)]
+    tmp_str = strsplit(tmp_str, '[.]')[[1]]
+    tmp_str = as.numeric(tmp_str[length(tmp_str)-1])
+    #......................................................
+    
+    df = data.table::fread(lst_csvs[x], header = F, stringsAsFactors = F, nThread = parallel::detectCores())
+    df$V1 = NULL
+    colnames(df) = c('Date_Time', 'EMF', 'EF', 'RF_mw_sqm', 'RF_mw_sqcm', 'RF_pw_sqcm')                        # For more info on the column names SEE:  https://gitlab.com/codref/em390cli/-/blob/master/src/main.rs#L277
+    df$Date_Time = lubridate::ymd_hms(df$Date_Time)
+    lubridate::year(df$Date_Time) = rep(tmp_str, length(df$Date_Time))                                         #  !!!!!!! replace the YEAR with the year of the file name
+    
+    df$Date_Time = as.Date(df$Date_Time)                                                                       #  !!!! COMMENT THIS LINE OUT if I want to include also the time
+    df
+})
+
+dat = data.table::rbindlist(dat)
+not_dups = !duplicated(dat)
+dat = dat[not_dups, , drop = F]
+dat = dat[order(dat$Date_Time, decreasing = T), ]
+
+dat = dat[, .(EMF_mean = mean(EMF),
+              EMF_max = max(EMF),
+              EF_mean = mean(EF),
+              EF_max = max(EF),
+              RF_pw_sqcm_mean = mean(RF_pw_sqcm),
+              RF_pw_sqcm_max = max(RF_pw_sqcm)),
+          by = 'Date_Time']
+
+dat$x = factor(dat$x, levels = dat[["Date_Time"]])
+
+import::from('magrittr', '%>%')
+
+PLOTLY_FUNC = function(inp_data, type) {
+  
+  fig <- plotly::plot_ly(inp_data, x = ~Date_Time, y = inp_data[[glue::glue("{type}_mean")]], type = 'bar', name = glue::glue("{type}_mean"), marker = list(color = 'rgb(49,130,189)'))
+  fig <- fig %>% plotly::add_trace(y = inp_data[[glue::glue("{type}_max")]], name = glue::glue("{type}_max"), marker = list(color = 'rgb(204,204,204)'))
+  fig <- fig %>% plotly::layout(xaxis = list(title = "", tickangle = -45),
+           yaxis = list(title = ""),
+           margin = list(b = 100),
+           barmode = 'group',
+           width = 950,
+           height = 500)
+  
+  return(fig)
+}
+
+
+```
+
+<br>
+
+#### Vizualization **EMF** (*Electromagnetic Field Radiation*)
+
+```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
+
+PLOTLY_FUNC(inp_data = dat, type = 'EMF')
+
+```
+
+<br>
+
+#### Vizualization **EF** (*Electric Field Radiation*)
+
+<br>
+
+```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
+
+PLOTLY_FUNC(inp_data = dat, type = 'EF')
+
+```
+
+<br>
+
+#### Vizualization **RF** (*Radio Frequency Radiation*)
+
+<br>
+
+```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
+
+PLOTLY_FUNC(inp_data = dat, type = 'RF_pw_sqcm')
+
+```
+
+
+<br>
+
+### Location (Zografou, Athens, Greece)
+
+<br>
+
+```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
+
+gj_file = system.file('Zografou_Athens_Greece.geojson', package = 'GqEmf390RadiationDetector')
+pnt_obj = geojsonR::FROM_GeoJson(gj_file, Flatten_Coords = T, Average_Coordinates = T)
+average_coords = pnt_obj$leaflet_view_coords
+geometry_dump = pnt_obj$geometry_dump
+lft = leaflet::leaflet()
+lft = leaflet::addProviderTiles(map = lft, provider = leaflet::providers$Esri.WorldImagery, group = leaflet::providers$Esri.WorldImagery)
+lft = leaflet::addProviderTiles(map = lft, provider = leaflet::providers$OpenStreetMap, group = leaflet::providers$OpenStreetMap)
+lft = leaflet::setView(lft, lng = average_coords[1], lat = average_coords[2], zoom = 18)
+lft <- leaflet::addProviderTiles(lft, leaflet::providers$Esri.WorldImagery)
+lft = leaflet.extras::addGeoJSONv2(lft, geometry_dump, 
+                                   popupProperty = 'popup',                              # the geojson file must contain in the properties this attribute
+                                   labelProperty = 'Argonafton, Zografou, Athens',
+                                   highlightOptions = leaflet::highlightOptions(weight = 2, color = "#000000",
+                                                                                fillOpacity = 1, opacity = 1,
+                                                                                bringToFront = TRUE, sendToBack = TRUE))
+lft = leaflet::addLayersControl(map = lft,
+                                baseGroups = leaflet::providers$Esri.WorldImagery,
+                                overlayGroups = leaflet::providers$OpenStreetMap,
+                                options = leaflet::layersControlOptions(collapsed = FALSE),
+                                position = "topright")
+lft
+
+```
+
+<br>
+
+## Installation Instructions and Usage
+
+<br>
+
+The configuration is tested only on a Linux Machine and the installation requires the following steps:
+
+* First download the **.tar.gz** file from https://gitlab.com/codref/em390cli
+* Then extract the .tar.gz and rename the directory to **em390cli**
+* Then make **em390cli** the default directory using 
+    * cd /ADJUST_PATH_OF_YOUR_PC/em390cli
+* Then build using **cargo**. If you don't have **cargo** then install it based on [https://jeroen.github.io/erum2018/#7](https://jeroen.github.io/erum2018/#7)
+    * sudo apt-get install cargo
+    * cargo build
+* Once build successfully an additional **target** directory will be created which I'll have to overwrite in the previously mentioned **emf390cli** using:
+    * cp target/debug/emf390cli build/x86-linux/
+* Then create a directory to save the output **.csv files**:
+    * cd 
+    * mkdir /ADJUST_PATH_OF_YOUR_PC/DIR_SAVE_CSV
+* Then download all data from the **GQ_EMF_390** flash memory as mentioned in the documentation [https://gitlab.com/codref/em390cli#retrieve-data-stored-inside-the-unit-memory](https://gitlab.com/codref/em390cli#retrieve-data-stored-inside-the-unit-memory) using (**Make sure** that the **/dev/ttyUSB0** shortcut **exists** after you **connect your device** and **before executing** the following commands, so that the data can be saved to the .csv file):
+    * cd /ADJUST_PATH_OF_YOUR_PC/em390cli/build/x86-linux/
+    * sudo ./emf390cli -p /dev/ttyUSB0 -d /home/lampros/Desktop/GQ_EMF_390_Radiation_Detector/DIR_SAVE_CSV/todays_data.csv
+* The data can be loaded in any programming languages using a .csv reader
+
+<br>
+
+**Reference (and credits to):**
+
+* https://gitlab.com/codref/em390cli
+
+<br>

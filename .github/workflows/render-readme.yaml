@@ -1,0 +1,39 @@
+# For help visit following page:
+# https://github.com/gavinsimpson/gratia/blob/master/.github/workflows/readme-renderer.yaml
+# https://fromthebottomoftheheap.net/2020/04/30/rendering-your-readme-with-github-actions/
+# https://github.com/kamapu/biblio/actions/runs/459068004/workflow
+
+name: render readme
+
+# Controls when the action will run
+on:
+  push:
+    branches: master
+
+jobs:
+  render:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@v1
+      - uses: r-lib/actions/setup-pandoc@v1
+      
+      # Install packages needed
+      - name: install required packages
+        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "import", "magrittr", "plotly", "geojsonR", "leaflet", "leaflet.extras"))'
+      
+      # Install packages needed from GitHub
+      - name: install from GitHub
+        run: Rscript -e 'remotes::install_github("mlampros/GqEmf390RadiationDetector", upgrade_dependencies = FALSE)'
+      
+      # Render README.md using rmarkdown
+      - name: render README
+        run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "md_document")'
+      
+      - name: commit rendered README
+        run: |
+          git commit README.md -m 'Re-build README.Rmd' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
