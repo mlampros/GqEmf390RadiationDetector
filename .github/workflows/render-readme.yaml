@@ -29,7 +29,7 @@ jobs:
       
       # Install packages needed
       - name: install required packages
-        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "import", "magrittr", "shiny", "plotly", "geojsonR", "leaflet", "leaflet.extras"))'
+        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "import", "magrittr", "shiny", "ggplot2", "geojsonR", "leaflet", "leaflet.extras", "htmlwidgets"))'
       
       # Install packages needed from GitHub
       - name: install from GitHub
@@ -44,5 +44,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit README.md -m 'Re-build README.Rmd' || echo "No changes to commit"
-          git push origin || echo "No changes to commit"
+          git add README.md man/figures/README-*
+          git commit -m "Re-build README.md" || echo "No changes to commit"
+          git push origin master || echo "No changes to commit"

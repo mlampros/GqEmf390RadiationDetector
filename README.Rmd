@@ -5,6 +5,13 @@ always_allow_html: true
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+```{r, echo = FALSE, include = FALSE}
+knitr::opts_chunk$set(
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
 
 ## GqEmf390RadiationDetector
 
@@ -70,32 +77,74 @@ not_dups = !duplicated(dat)
 dat = dat[not_dups, , drop = F]
 dat = dat[order(dat$Date_Time, decreasing = T), ]
 
-dat = dat[, .(EMF_mean = mean(EMF),
-              EMF_max = max(EMF),
-              EF_mean = mean(EF),
-              EF_max = max(EF),
-              RF_pw_sqcm_mean = mean(RF_pw_sqcm),
-              RF_pw_sqcm_max = max(RF_pw_sqcm)),
+dat_mean = dat[, .(EMF = mean(EMF),
+              EF = mean(EF),
+              RF_pw_sqcm = mean(RF_pw_sqcm)),
           by = 'Date_Time']
 
-dat$x = factor(dat$x, levels = dat[["Date_Time"]])
+dat_mean$Value = rep('MEAN', nrow(dat_mean))
 
-import::from('magrittr', '%>%')
+dat_max = dat[, .(EMF = max(EMF),
+              EF = max(EF),
+              RF_pw_sqcm = max(RF_pw_sqcm)),
+          by = 'Date_Time']
 
-PLOTLY_FUNC = function(inp_data, type) {
+dat_max$Value = rep('MAX', nrow(dat_max))
+
+dat_all = rbind(dat_mean, dat_max)
+
+
+require(ggplot2)
+
+GGPLOT = function(inp_data, radiation_method) {
   
-  fig <- plotly::plot_ly(inp_data, x = ~Date_Time, y = inp_data[[glue::glue("{type}_mean")]], type = 'bar', name = glue::glue("{type}_mean"), marker = list(color = 'rgb(49,130,189)'))
-  fig <- fig %>% plotly::add_trace(y = inp_data[[glue::glue("{type}_max")]], name = glue::glue("{type}_max"), marker = list(color = 'rgb(204,204,204)'))
-  fig <- fig %>% plotly::layout(xaxis = list(title = "", tickangle = -45),
-           yaxis = list(title = ""),
-           margin = list(b = 100),
-           barmode = 'group',
-           width = 950,
-           height = 500)
-  
-  return(fig)
+ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method}")]], fill=Value)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  scale_fill_brewer(palette="Paired")+
+  theme_minimal()
+
+inp_data$Date_Time<-as.factor(inp_data$Date_Time)
+
+ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method}")]], fill=Value)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  scale_fill_brewer(palette="Paired")+
+  theme_minimal() +
+  ylab(radiation_method) +
+  theme(axis.title.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
+                 strip.text.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
+                 axis.title.x = ggplot2::element_text(size = 11, face="bold", colour = "black"),
+                 axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 1))
 }
 
+```
+
+
+```{r plotly-EMF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10}
+
+# Vizualization EMF
+
+plt_emf = GGPLOT(inp_data = dat_all, radiation_method = 'EMF')
+plt_emf
+
+```
+
+
+```{r plotly-EF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10}
+
+# Vizualization EF
+
+plt_ef = GGPLOT(inp_data = dat_all, radiation_method = 'EF')
+plt_ef
+
+```
+
+
+```{r plotly-RF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10}
+
+# Vizualization RF
+
+plt_rf = GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
+plt_rf
 
 ```
 
@@ -103,11 +152,9 @@ PLOTLY_FUNC = function(inp_data, type) {
 
 #### Vizualization **EMF** (*Electromagnetic Field Radiation*)
 
-```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
+<br>
 
-PLOTLY_FUNC(inp_data = dat, type = 'EMF')
-
-```
+![](man/figures/README-plotly-EMF-figure-1.png)
 
 <br>
 
@@ -115,11 +162,7 @@ PLOTLY_FUNC(inp_data = dat, type = 'EMF')
 
 <br>
 
-```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
-
-PLOTLY_FUNC(inp_data = dat, type = 'EF')
-
-```
+![](man/figures/README-plotly-EF-figure-1.png)
 
 <br>
 
@@ -127,20 +170,23 @@ PLOTLY_FUNC(inp_data = dat, type = 'EF')
 
 <br>
 
-```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
-
-PLOTLY_FUNC(inp_data = dat, type = 'RF_pw_sqcm')
-
-```
+![](man/figures/README-plotly-RF-figure-1.png)
 
 
-<br>
+```{r Leaflet-Map, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 6, fig.width = 8}
 
-### Location (Zografou, Athens, Greece)
+# save the leaflet map as an .html file [ see: https://github.com/ramnathv/htmlwidgets/issues/299#issuecomment-375058928 ]
 
-<br>
+saveWidgetFix <- function (widget,file,...) {
 
-```{r, eval = TRUE, echo = FALSE, warning = F, message = F}
+  wd <- getwd()
+  on.exit(setwd(wd))
+  outDir <- dirname(file)
+  file <- basename(file)
+  setwd(outDir);
+  htmlwidgets::saveWidget(widget, file = file,...)
+}
+
 
 gj_file = system.file('Zografou_Athens_Greece.geojson', package = 'GqEmf390RadiationDetector')
 pnt_obj = geojsonR::FROM_GeoJson(gj_file, Flatten_Coords = T, Average_Coordinates = T)
@@ -162,10 +208,21 @@ lft = leaflet::addLayersControl(map = lft,
                                 overlayGroups = leaflet::providers$OpenStreetMap,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topright")
+
+saveWidgetFix(widget = lft, file = file.path(getwd(), 'man/figures/my_location.html'), selfcontained = TRUE)
+
 lft
 
 ```
 
+
+<br>
+
+[Click here to view the Location (Zografou, Athens, Greece) on Browser](man/figures/my_location.html)
+
+<br>
+
+![](man/figures/README-Leaflet-Map-1.png)
 <br>
 
 ## Installation Instructions and Usage
