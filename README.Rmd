@@ -123,8 +123,7 @@ ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method
 
 # Vizualization EMF
 
-plt_emf = GGPLOT(inp_data = dat_all, radiation_method = 'EMF')
-plt_emf
+GGPLOT(inp_data = dat_all, radiation_method = 'EMF')
 
 ```
 
@@ -133,8 +132,7 @@ plt_emf
 
 # Vizualization EF
 
-plt_ef = GGPLOT(inp_data = dat_all, radiation_method = 'EF')
-plt_ef
+GGPLOT(inp_data = dat_all, radiation_method = 'EF')
 
 ```
 
@@ -143,8 +141,7 @@ plt_ef
 
 # Vizualization RF
 
-plt_rf = GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
-plt_rf
+GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
 
 ```
 
@@ -209,9 +206,7 @@ lft = leaflet::addLayersControl(map = lft,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topright")
 
-saveWidgetFix(widget = lft, file = file.path(getwd(), 'man/figures/my_location.html'), selfcontained = TRUE)
-
-lft
+saveWidgetFix(widget = lft, file = 'my_location.html', selfcontained = TRUE)
 
 ```
 
