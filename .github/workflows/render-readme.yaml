@@ -21,14 +21,6 @@ jobs:
       - uses: r-lib/actions/setup-r@v1
       - uses: r-lib/actions/setup-pandoc@v1
       
-      - run: |
-          date > generated.txt
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "generated"
-          git push
-      
       - name: Update packages
         run: sudo apt update
       
@@ -47,7 +39,10 @@ jobs:
       - name: render README
         run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "md_document")'
       
+      # I have to configure 'name' and 'email' for git-push, SEE: [https://github.community/t/how-does-one-commit-from-an-action/16127/9] and [https://github.com/actions/checkout#push-a-commit-using-the-built-in-token]
       - name: commit rendered README
         run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           git commit README.md -m 'Re-build README.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
