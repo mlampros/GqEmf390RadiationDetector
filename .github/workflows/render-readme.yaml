@@ -21,9 +21,12 @@ jobs:
       - uses: r-lib/actions/setup-r@v1
       - uses: r-lib/actions/setup-pandoc@v1
       
+      - name: install dependencies
+        run: sudo apt-get install libcurl4-openssl-dev
+      
       # Install packages needed
       - name: install required packages
-        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "import", "magrittr", "plotly", "geojsonR", "leaflet", "leaflet.extras"))'
+        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "import", "magrittr", "shiny", "plotly", "geojsonR", "leaflet", "leaflet.extras"))'
       
       # Install packages needed from GitHub
       - name: install from GitHub
