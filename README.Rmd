@@ -1,6 +1,6 @@
 ---
 output: github_document
-always_allow_html: true
+always_allow_html: false
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -98,22 +98,19 @@ require(ggplot2)
 
 GGPLOT = function(inp_data, radiation_method) {
   
-ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method}")]], fill=Value)) +
-  geom_bar(stat="identity", position=position_dodge())+
-  scale_fill_brewer(palette="Paired")+
-  theme_minimal()
-
-inp_data$Date_Time<-as.factor(inp_data$Date_Time)
-
-ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method}")]], fill=Value)) +
-  geom_bar(stat="identity", position=position_dodge())+
-  scale_fill_brewer(palette="Paired")+
-  theme_minimal() +
-  ylab(radiation_method) +
-  theme(axis.title.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
-                 strip.text.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
-                 axis.title.x = ggplot2::element_text(size = 11, face="bold", colour = "black"),
-                 axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 1))
+  inp_data$Date_Time = as.factor(inp_data$Date_Time)
+  
+  gg_plt = ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method}")]], fill=Value)) +
+    geom_bar(stat="identity", position=position_dodge()) +
+    scale_fill_brewer(palette="Paired") +
+    theme_minimal() +
+    ylab(radiation_method) +
+    theme(axis.title.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
+          strip.text.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
+          axis.title.x = ggplot2::element_text(size = 11, face="bold", colour = "black"),
+          axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 1))
+  
+  return(gg_plt)
 }
 
 ```
@@ -206,7 +203,9 @@ lft = leaflet::addLayersControl(map = lft,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topright")
 
-saveWidgetFix(widget = lft, file = 'my_location.html', selfcontained = TRUE)
+saveWidgetFix(widget = lft, file = file.path(path.package('GqEmf390RadiationDetector'), 'man/figures/my_location.html'), selfcontained = TRUE)
+
+lft
 
 ```
 
@@ -248,5 +247,9 @@ The configuration is tested only on a Linux Machine and the installation require
 **Reference (and credits to):**
 
 * https://gitlab.com/codref/em390cli
+
+<br>
+
+
 
 <br>
