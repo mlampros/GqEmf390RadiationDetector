@@ -167,7 +167,7 @@ GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
 ![](man/figures/README-plotly-RF-figure-1.png)
 
 
-```{r Leaflet-Map, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 6, fig.width = 8}
+```{r Leaflet-Map, eval = TRUE, echo = FALSE, warning = F, message = F}
 
 # save the leaflet map as an .html file [ see: https://github.com/ramnathv/htmlwidgets/issues/299#issuecomment-375058928 ]
 
@@ -203,9 +203,8 @@ lft = leaflet::addLayersControl(map = lft,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topright")
 
-saveWidgetFix(widget = lft, file = file.path(getwd(), 'man/figures/my_location.html'), selfcontained = TRUE)
-
-lft
+html_path = file.path(getwd(), 'man/figures/my_location.html')
+saveWidgetFix(widget = lft, file = html_path, selfcontained = TRUE)
 
 ```
 
@@ -216,7 +215,7 @@ lft
 
 <br>
 
-![](man/figures/README-Leaflet-Map-1.png)
+![](inst/location_map.png)
 <br>
 
 ## Installation Instructions and Usage
