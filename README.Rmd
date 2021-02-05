@@ -203,7 +203,7 @@ lft = leaflet::addLayersControl(map = lft,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topright")
 
-saveWidgetFix(widget = lft, file = file.path(path.package('GqEmf390RadiationDetector'), 'man/figures/my_location.html'), selfcontained = TRUE)
+saveWidgetFix(widget = lft, file = file.path(getwd(), 'man/figures/my_location.html'), selfcontained = TRUE)
 
 lft
 
