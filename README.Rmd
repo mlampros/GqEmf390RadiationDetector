@@ -218,7 +218,7 @@ saveWidgetFix(widget = lft, file = html_path, selfcontained = TRUE)
 
 <br>
 
-[Click here to view the Location (Zografou, Athens, Greece) on Browser](inst/my_location.html)
+[Click here to view the Location (Zografou, Athens, Greece) on Browser](https://raw.githack.com/mlampros/GqEmf390RadiationDetector/master/inst/my_location.html)
 
 <br>
 
