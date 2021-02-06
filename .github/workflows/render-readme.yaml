@@ -29,7 +29,8 @@ jobs:
       
       # Install packages needed
       - name: install required packages
-        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "import", "magrittr", "shiny", "ggplot2", "geojsonR", "leaflet", "leaflet.extras", "htmlwidgets"))'
+        run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "ggplot2"))'
+        # run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "ggplot2", "geojsonR", "shiny", "leaflet", "leaflet.extras", "htmlwidgets"))'
       
       # Install packages needed from GitHub
       - name: install from GitHub

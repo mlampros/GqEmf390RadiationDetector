@@ -116,29 +116,32 @@ GGPLOT = function(inp_data, radiation_method) {
 ```
 
 
-```{r plotly-EMF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10}
+```{r plotly-EMF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10, fig.show = "hide"}
 
 # Vizualization EMF
 
-GGPLOT(inp_data = dat_all, radiation_method = 'EMF')
+plt_emf = GGPLOT(inp_data = dat_all, radiation_method = 'EMF')
+plt_emf
 
 ```
 
 
-```{r plotly-EF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10}
+```{r plotly-EF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10, fig.show = "hide"}
 
 # Vizualization EF
 
-GGPLOT(inp_data = dat_all, radiation_method = 'EF')
+plt_ef = GGPLOT(inp_data = dat_all, radiation_method = 'EF')
+plt_ef
 
 ```
 
 
-```{r plotly-RF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10}
+```{r plotly-RF-figure, eval = TRUE, echo = FALSE, warning = F, message = F, dev = "png", fig.height = 8, fig.width = 10, fig.show = "hide"}
 
 # Vizualization RF
 
-GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
+plt_rf = GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
+plt_rf
 
 ```
 
@@ -167,9 +170,12 @@ GGPLOT(inp_data = dat_all, radiation_method = 'RF_pw_sqcm')
 ![](man/figures/README-plotly-RF-figure-1.png)
 
 
-```{r Leaflet-Map, eval = TRUE, echo = FALSE, warning = F, message = F}
+```{r Leaflet-Map, eval = FALSE, echo = FALSE, warning = F, message = F}
 
+#...............................................................................................................................................................
+# Keep this as a reference to create the .html file and run this code snippet only once to save the .html file in the 'inst' directory (from where I'll load it)
 # save the leaflet map as an .html file [ see: https://github.com/ramnathv/htmlwidgets/issues/299#issuecomment-375058928 ]
+#...............................................................................................................................................................
 
 saveWidgetFix <- function (widget,file,...) {
 
@@ -203,7 +209,8 @@ lft = leaflet::addLayersControl(map = lft,
                                 options = leaflet::layersControlOptions(collapsed = FALSE),
                                 position = "topright")
 
-html_path = file.path(getwd(), 'man/figures/my_location.html')
+# html_path = file.path(getwd(), 'man/figures/my_location.html')
+html_path = 'my_location.html'
 saveWidgetFix(widget = lft, file = html_path, selfcontained = TRUE)
 
 ```
@@ -211,7 +218,7 @@ saveWidgetFix(widget = lft, file = html_path, selfcontained = TRUE)
 
 <br>
 
-[Click here to view the Location (Zografou, Athens, Greece) on Browser](man/figures/my_location.html)
+[Click here to view the Location (Zografou, Athens, Greece) on Browser](inst/my_location.html)
 
 <br>
 
@@ -248,6 +255,7 @@ The configuration is tested only on a Linux Machine and the installation require
 * https://gitlab.com/codref/em390cli
 
 <br>
+
 
 
 <br>
