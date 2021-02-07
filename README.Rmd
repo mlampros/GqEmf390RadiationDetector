@@ -3,6 +3,20 @@ output: github_document
 always_allow_html: false
 ---
 
+```{r, echo = FALSE, eval = FALSE}
+
+#.................................
+# run these commands when git push   [ so that I don't have to git pull every time as the figures will be added to the 'man' directory automatically ]
+#.................................
+
+# git add .
+# git status
+# git commit -m 'update files'
+# git push -f origin master
+
+```
+
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, echo = FALSE, include = FALSE}
@@ -64,11 +78,10 @@ dat = lapply(1:length(lst_csvs), function(x) {
     
     df = data.table::fread(lst_csvs[x], header = F, stringsAsFactors = F, nThread = parallel::detectCores())
     df$V1 = NULL
-    colnames(df) = c('Date_Time', 'EMF', 'EF', 'RF_mw_sqm', 'RF_mw_sqcm', 'RF_pw_sqcm')                        # For more info on the column names SEE:  https://gitlab.com/codref/em390cli/-/blob/master/src/main.rs#L277
+    colnames(df) = c('Date_Time', 'EMF', 'EF', 'RF_mw_sqm', 'RF_mw_sqcm', 'RF_pw_sqcm')                        # For more info on the column names and their order SEE:  https://gitlab.com/codref/em390cli/-/blob/master/src/main.rs#L277
     df$Date_Time = lubridate::ymd_hms(df$Date_Time)
     lubridate::year(df$Date_Time) = rep(tmp_str, length(df$Date_Time))                                         #  !!!!!!! replace the YEAR with the year of the file name
     
-    df$Date_Time = as.Date(df$Date_Time)                                                                       #  !!!! COMMENT THIS LINE OUT if I want to include also the time
     df
 })
 
@@ -77,30 +90,60 @@ not_dups = !duplicated(dat)
 dat = dat[not_dups, , drop = F]
 dat = dat[order(dat$Date_Time, decreasing = T), ]
 
-dat_mean = dat[, .(EMF = mean(EMF),
-              EF = mean(EF),
-              RF_pw_sqcm = mean(RF_pw_sqcm)),
-          by = 'Date_Time']
+spl_date_time = strsplit(as.character(dat$Date_Time), ' ')
+dat$Date_Time = NULL
+dat$Date = trimws(as.vector(unlist(lapply(spl_date_time, function(x) x[1]))), which = 'both')
+dat$Time = trimws(as.vector(unlist(lapply(spl_date_time, function(x) x[2]))), which = 'both')
+lubr_time = lubridate::hms(dat$Time)
+dat$day_night_value = ifelse(lubr_time >= lubridate::hms("00:00:00") & lubr_time <= lubridate::hms("07:30:00"), 'NIGHT', 'DAY')          # separate day and night hours (approx.)
+dat$Time = NULL                                                                                                                          # remove to be able to aggregate [ I might have to keep it for line plots ]
 
-dat_mean$Value = rep('MEAN', nrow(dat_mean))
+# df$Date_Time = as.Date(df$Date_Time)                                                                                                   # in case I want to keep only the Date part of the Date-Time column
 
-dat_max = dat[, .(EMF = max(EMF),
-              EF = max(EF),
-              RF_pw_sqcm = max(RF_pw_sqcm)),
-          by = 'Date_Time']
+#.......................................
+# MEAN-aggregate by Date + (DAY & NIGHT)  [ https://stackoverflow.com/a/34523783/8302386 ]
+#.......................................
 
-dat_max$Value = rep('MAX', nrow(dat_max))
+dat_mean = aggregate(.~Date+day_night_value, dat, mean)
+dat_mean$day_night_value = ifelse(dat_mean$day_night_value == 'DAY', 'mean_DAY', 'NIGHT_mean')
+
+
+#......................................
+# MAX-aggregate by Date + (DAY & NIGHT)
+#......................................
+
+dat_max = aggregate(.~Date+day_night_value, dat, max)
+dat_max$day_night_value = ifelse(dat_max$day_night_value == 'DAY', 'max_DAY', 'NIGHT_max')
 
 dat_all = rbind(dat_mean, dat_max)
+
+
+#...............................................  aggregate only by 'Date-Time'   [ I used this initially ]
+# dat_mean = dat[, .(EMF = mean(EMF),
+#               EF = mean(EF),
+#               RF_pw_sqcm = mean(RF_pw_sqcm)),
+#           by = 'Date_Time']
+# 
+# dat_mean$Value = rep('MEAN', nrow(dat_mean))
+# 
+# dat_max = dat[, .(EMF = max(EMF),
+#               EF = max(EF),
+#               RF_pw_sqcm = max(RF_pw_sqcm)),
+#           by = 'Date_Time']
+# 
+# dat_max$Value = rep('MAX', nrow(dat_max))
+# 
+# dat_all = rbind(dat_mean, dat_max)
+#...............................................
 
 
 require(ggplot2)
 
 GGPLOT = function(inp_data, radiation_method) {
   
-  inp_data$Date_Time = as.factor(inp_data$Date_Time)
+  inp_data$Date = as.factor(inp_data$Date)
   
-  gg_plt = ggplot(data=inp_data, aes(x=Date_Time, y=inp_data[[glue::glue("{radiation_method}")]], fill=Value)) +
+  gg_plt = ggplot(data=inp_data, aes(x=Date, y=inp_data[[glue::glue("{radiation_method}")]], fill=day_night_value)) +
     geom_bar(stat="identity", position=position_dodge()) +
     scale_fill_brewer(palette="Paired") +
     theme_minimal() +
@@ -147,7 +190,7 @@ plt_rf
 
 <br>
 
-#### Vizualization **EMF** (*Electromagnetic Field Radiation*)
+#### Vizualization **EMF** (*Electromagnetic Field Radiation* separated by *Day* and *Night* values)
 
 <br>
 
@@ -155,7 +198,7 @@ plt_rf
 
 <br>
 
-#### Vizualization **EF** (*Electric Field Radiation*)
+#### Vizualization **EF** (*Electric Field Radiation* separated by *Day* and *Night* values)
 
 <br>
 
@@ -163,7 +206,7 @@ plt_rf
 
 <br>
 
-#### Vizualization **RF** (*Radio Frequency Radiation*)
+#### Vizualization **RF** (*Radio Frequency Radiation* separated by *Day* and *Night* values)
 
 <br>
 
@@ -212,6 +255,13 @@ lft = leaflet::addLayersControl(map = lft,
 # html_path = file.path(getwd(), 'man/figures/my_location.html')
 html_path = 'my_location.html'
 saveWidgetFix(widget = lft, file = html_path, selfcontained = TRUE)
+
+#..............................................................................
+# References to open the saved "inst/my_location.html" file on the web-browser:
+#
+#    https://raw.githack.com/
+#    https://stackoverflow.com/a/17180148/8302386
+#..............................................................................
 
 ```
 

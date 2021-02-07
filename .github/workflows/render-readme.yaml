@@ -1,7 +1,10 @@
+
+#..........................................................................................
 # For help visit following page:
 # https://github.com/gavinsimpson/gratia/blob/master/.github/workflows/readme-renderer.yaml
 # https://fromthebottomoftheheap.net/2020/04/30/rendering-your-readme-with-github-actions/
 # https://github.com/kamapu/biblio/actions/runs/459068004/workflow
+#..........................................................................................
 
 name: render readme
 
