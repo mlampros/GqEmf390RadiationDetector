@@ -9,6 +9,8 @@ always_allow_html: false
 # run these commands when git push   [ so that I don't have to git pull every time as the figures will be added to the 'man' directory automatically ]
 #.................................
 
+# git config --global http.postbuffer 2097152000       # I might have to add this command too to avoid the error: 'error: RPC failed; curl 55 The requested URL returned error: 401' [ SEE: https://stackoverflow.com/a/65239506 ]
+
 # git add .
 # git status
 # git commit -m 'update files'
