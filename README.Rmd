@@ -13,7 +13,7 @@ always_allow_html: false
 
 # git add .
 # git status
-# git commit -m 'update files'
+# git commit -m 'update .csv files'
 # git push -f origin master
 
 ```
