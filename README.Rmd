@@ -60,30 +60,21 @@ The following visualization shows the measurements of the **3 radiation meters**
 
 ```{r, eval = TRUE, echo = FALSE}
 
-#########################################################################################
-#                              !!!!!! IMPORTANT !!!!!!!!! 
-#                              ##########################
-# Currently the Rust package does not return the correct YEAR, therefore I have to pass 
-# the YEAR of the .csv file name to the data.table so that the correct year is displayed
-#########################################################################################
+###########################################################################
+# Use the unix timestamp (column V1 in the raw data) to come to the correct 
+# Date-Time because the Date-Time (V2 column) gives incorrect data
+###########################################################################
 
 dir_pth = system.file('emf_rf_ef_data', package = 'GqEmf390RadiationDetector')
 lst_csvs = list.files(dir_pth, full.names = T, pattern = '.csv')
 dat = lapply(1:length(lst_csvs), function(x) {
     
-    #...................................................... Extract the year from the file name
-    tmp_str = strsplit(basename(lst_csvs[x]), '_')[[1]]
-    tmp_str = tmp_str[length(tmp_str)]
-    tmp_str = strsplit(tmp_str, '[.]')[[1]]
-    tmp_str = as.numeric(tmp_str[length(tmp_str)-1])
-    #......................................................
-    
     df = data.table::fread(lst_csvs[x], header = F, stringsAsFactors = F, nThread = parallel::detectCores())
-    df$V1 = NULL
-    colnames(df) = c('Date_Time', 'EMF', 'EF', 'RF_mw_sqm', 'RF_mw_sqcm', 'RF_pw_sqcm')                        # For more info on the column names and their order SEE:  https://gitlab.com/codref/em390cli/-/blob/master/src/main.rs#L277
-    df$Date_Time = lubridate::ymd_hms(df$Date_Time)
-    lubridate::year(df$Date_Time) = rep(tmp_str, length(df$Date_Time))                                         #  !!!!!!! replace the YEAR with the year of the file name
+    df$V2 = NULL                                                                                               # remove the date-time column because it give incorrect data (I'll use the unix timestamp)
+    tmp_date_time = as.POSIXct(df$V1, origin = "1971-01-02", tz = 'UTC')                                       # I've adjusted the 'origin' to correspond to the current date
+    df$V1 = tmp_date_time
     
+    colnames(df) = c('Date_Time', 'EMF', 'EF', 'RF_mw_sqm', 'RF_mw_sqcm', 'RF_pw_sqcm')                        # For more info on the column names and their order SEE:  https://gitlab.com/codref/em390cli/-/blob/master/src/main.rs#L277
     df
 })
 
