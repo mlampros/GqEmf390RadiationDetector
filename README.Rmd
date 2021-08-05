@@ -113,7 +113,41 @@ dat_all = rbind(dat_mean, dat_max)
 weeks = seq(from = min(as.Date(dat_all$Date)), to = max(as.Date(dat_all$Date)), by = '1 week')
 int_weeks = lubridate::week(as.Date(dat_all$Date))
 
+
+#..................
+# aggregate by week     [ comment this out if you want the results per day ]
+#..................
+
 dat_all$week = weeks[int_weeks]
+dat_all$Date = NULL
+
+dat_all = data.table::data.table(dat_all, stringsAsFactors = F)
+dat_all = split(dat_all, by = 'day_night_value')
+
+dat_all = lapply(dat_all, function(x) {
+  
+  nam = unique(x$day_night_value)
+  mean_ex = gregexpr('mean', nam) != -1
+  max_ex = gregexpr('max', nam) != -1
+  
+  x$day_night_value = NULL
+  
+  if (mean_ex) {
+    x = x[, lapply(.SD, mean), by = 'week'] 
+  }
+  else if (max_ex) {
+    x = x[, lapply(.SD, max), by = 'week'] 
+  }
+  else {
+    stop("I expect that one of the 'mean_ex' and 'max_ex' is FALSE but not both!", call. = F)
+  }
+  
+  x$day_night_value = rep(nam, nrow(x))
+  
+  x
+})
+
+dat_all = do.call(rbind, dat_all)
 
 
 #...............................................  aggregate only by 'Date-Time'   [ I used this initially ]
@@ -154,7 +188,9 @@ GGPLOT = function(inp_data, radiation_method) {
     theme(axis.title.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
           strip.text.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
           axis.title.x = ggplot2::element_text(size = 11, face="bold", colour = "black", vjust = 0.3),
-          axis.text.x = ggplot2::element_text(angle = 45, vjust = 1.0, hjust = 1))
+          axis.text.x = ggplot2::element_text(angle = 45, vjust = 1.0, hjust = 1),
+          axis.ticks.y = ggplot2::element_line(linetype="solid", color = 'blue', size = 1.0),
+          axis.ticks.x = ggplot2::element_line(linetype="solid", color = 'blue', size = 1.0))
   
   return(gg_plt)
 }
@@ -309,6 +345,3 @@ The configuration is tested only on a Linux Machine and the installation require
 
 <br>
 
-
-
-<br>
