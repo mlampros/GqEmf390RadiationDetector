@@ -110,6 +110,11 @@ dat_max$day_night_value = ifelse(dat_max$day_night_value == 'DAY', 'max_DAY', 'N
 
 dat_all = rbind(dat_mean, dat_max)
 
+weeks = seq(from = min(as.Date(dat_all$Date)), to = max(as.Date(dat_all$Date)), by = '1 week')
+int_weeks = lubridate::week(as.Date(dat_all$Date))
+
+dat_all$week = weeks[int_weeks]
+
 
 #...............................................  aggregate only by 'Date-Time'   [ I used this initially ]
 # dat_mean = dat[, .(EMF = mean(EMF),
@@ -134,17 +139,22 @@ require(ggplot2)
 
 GGPLOT = function(inp_data, radiation_method) {
   
-  inp_data$Date = as.factor(inp_data$Date)
+  # inp_data$Date = as.factor(inp_data$Date)                   # using 'Date' after a specific point the Dates can not be distinguished visually  [ as of August 2021 I use 'weekly' data ]
+  inp_data$week = as.factor(inp_data$week)
+  col_data = inp_data[[glue::glue("{radiation_method}")]]
+  max_col_data = max(col_data) + 1.05 * max(col_data)          # set the max. slightly higher than the current max.
   
-  gg_plt = ggplot(data=inp_data, aes(x=Date, y=inp_data[[glue::glue("{radiation_method}")]], fill=day_night_value)) +
+  # gg_plt = ggplot(data=inp_data, aes(x=Date, y=col_data, fill=day_night_value)) +
+  gg_plt = ggplot(data=inp_data, aes(x=week, y=col_data, fill=day_night_value)) +
+    scale_y_continuous(breaks = round(seq(from = 0.0, to = max_col_data, length.out = 60))) +
     geom_bar(stat="identity", position=position_dodge()) +
     scale_fill_brewer(palette="Paired") +
     theme_minimal() +
     ylab(radiation_method) +
     theme(axis.title.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
           strip.text.y = ggplot2::element_text(size = 11, face="bold", colour = "black"),
-          axis.title.x = ggplot2::element_text(size = 11, face="bold", colour = "black"),
-          axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 1))
+          axis.title.x = ggplot2::element_text(size = 11, face="bold", colour = "black", vjust = 0.3),
+          axis.text.x = ggplot2::element_text(angle = 45, vjust = 1.0, hjust = 1))
   
   return(gg_plt)
 }
