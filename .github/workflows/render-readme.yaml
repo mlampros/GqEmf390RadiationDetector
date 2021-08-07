@@ -17,32 +17,35 @@ jobs:
   render:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    
+
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@v1
       - uses: r-lib/actions/setup-pandoc@v1
-      
+
       - name: Update packages
         run: sudo apt update
-      
+
       - name: Install Curl
         run: sudo apt install libcurl4-openssl-dev libssl-dev
-      
+
       # Install packages needed
       - name: install required packages
         run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "ggplot2"))'
         # run: Rscript -e 'install.packages(c("remotes", "rmarkdown", "data.table", "lubridate", "ggplot2", "geojsonR", "shiny", "leaflet", "leaflet.extras", "htmlwidgets"))'
-      
+
       # Install packages needed from GitHub
       - name: install from GitHub
-        run: Rscript -e 'remotes::install_github("mlampros/GqEmf390RadiationDetector", upgrade_dependencies = FALSE)'
-      
+        run: |
+          R CMD build GqEmf390RadiationDetector
+          R CMD INSTALL GqEmf390RadiationDetector_1.0.0.tar.gz
+          # Rscript -e 'remotes::install_github("mlampros/GqEmf390RadiationDetector", upgrade_dependencies = FALSE)'
+
       # Render README.md using rmarkdown
       - name: render README
         run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "md_document")'
-      
+
       # I have to configure 'name' and 'email' for git-push, SEE: [https://github.community/t/how-does-one-commit-from-an-action/16127/9] and [https://github.com/actions/checkout#push-a-commit-using-the-built-in-token]
       - name: commit rendered README
         run: |
