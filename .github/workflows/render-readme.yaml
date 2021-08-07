@@ -38,10 +38,13 @@ jobs:
       # Install packages needed from GitHub
       - name: install from GitHub
         run: |
+          cd ..
           pwd
           ls -a
           R CMD build GqEmf390RadiationDetector
           R CMD INSTALL GqEmf390RadiationDetector_1.0.0.tar.gz
+          cd $GITHUB_WORKSPACE
+          pwd
           # Rscript -e 'remotes::install_github("mlampros/GqEmf390RadiationDetector", upgrade_dependencies = FALSE)'
 
       # Render README.md using rmarkdown
