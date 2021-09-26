@@ -1,7 +1,7 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-## GqEmf390RadiationDetector
+GqEmf390RadiationDetector
+-------------------------
 
 <br>
 
@@ -79,7 +79,8 @@ Browser](https://raw.githack.com/mlampros/GqEmf390RadiationDetector/master/inst/
 
 ![](inst/location_map.png) <br>
 
-## Installation Instructions and Usage
+Installation Instructions and Usage
+-----------------------------------
 
 <br>
 
@@ -87,7 +88,7 @@ The configuration is tested only on a Linux Machine and the installation
 requires the following steps:
 
 -   First download the **.tar.gz** file from
-    <https://gitlab.com/codref/em390cli>
+    <a href="https://gitlab.com/codref/em390cli" class="uri">https://gitlab.com/codref/em390cli</a>
 -   Then extract the .tar.gz and rename the directory to **em390cli**
 -   Then make **em390cli** the default directory using
     -   cd /ADJUST\_PATH\_OF\_YOUR\_PC/em390cli
@@ -118,6 +119,6 @@ requires the following steps:
 
 **Reference (and credits to):**
 
--   <https://gitlab.com/codref/em390cli>
+-   <a href="https://gitlab.com/codref/em390cli" class="uri">https://gitlab.com/codref/em390cli</a>
 
 <br>
